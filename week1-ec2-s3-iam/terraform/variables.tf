@@ -10,3 +10,15 @@ variable "key_pair_name" {
   description = "Your existing EC2 key pair name"
   default     = "tf-lab-key"
 }
+
+
+###
+# Add types of the varible for each declaration. 
+
+#EG 
+
+# variable "key_pair_name" {
+#   description = "Your existing EC2 key pair name"/
+#    type = string
+#   default     = "tf-lab-key"
+# }

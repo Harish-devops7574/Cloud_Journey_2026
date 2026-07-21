@@ -25,7 +25,7 @@ resource "aws_s3_bucket_public_access_block" "lab_bucket_block" {
 
 # IAM Role
 resource "aws_iam_role" "ec2_s3_role" {
-  name = "ec2-s3-access-role-tf"
+  name = "ec2-s3-access-role-tf" # Role mentioned here is here is different from the one mentioned in the readme 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -38,7 +38,7 @@ resource "aws_iam_role" "ec2_s3_role" {
 
 resource "aws_iam_role_policy_attachment" "s3_policy_attach" {
   role       = aws_iam_role.ec2_s3_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"  // Can be reduced further to specific bucket-  enhancement
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
@@ -55,14 +55,14 @@ resource "aws_security_group" "ec2_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # Do not ever open to public 
   }
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # Do not open to public
   }
 
   egress {
@@ -75,12 +75,12 @@ resource "aws_security_group" "ec2_sg" {
 
 # EC2 Instance
 resource "aws_instance" "lab_ec2" {
-  ami                    = "ami-0c02fb55956c7d316"
-  instance_type          = "t2.micro"
+  ami                    = "ami-0c02fb55956c7d316"  # try adding a data to fetch the ami, rather than hardcoding. 
+  instance_type          = "t2.micro" //  instance type can also be made as var
   key_name               = var.key_pair_name
   security_groups        = [aws_security_group.ec2_sg.name]
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
-  user_data              = file("userdata.sh")
+  user_data              = file("userdata.sh") // Rather than calling file function - file("${path.module}/userdata.sh") try this - rather than giving relative path, eventhough that is not wrong
 
   tags = {
     Name = "lab-ec2-tf"
