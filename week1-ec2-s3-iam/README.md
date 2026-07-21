@@ -30,4 +30,27 @@ All 3 phases replicated as code. Resources provisioned:
 
 Website verified at: http://13.218.40.43
 
-See `/terraform` folder for all `.tf` files and `userdata.sh`.
+
+## Architecture
+
+```
+                +--------------------+
+                |      Internet      |
+                +---------+----------+
+                          |
+                          |
+                    HTTP (80)
+                          |
+                    +-----v------+
+                    |    EC2      |
+                    | Apache Web  |
+                    +-----+------+
+                          |
+               IAM Role (No Access Keys)
+                          |
+                    +-----v------+
+                    |    S3       |
+                    | Log Storage |
+                    +------------+
+```
+---
