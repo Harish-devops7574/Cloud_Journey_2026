@@ -79,6 +79,13 @@ resource "aws_db_parameter_group" "this" {
 # ---------------------------------------------------------------------------
 # RDS instance — password is generated and rotated by AWS (Secrets Manager),
 # never written to Terraform state.
+#
+# Instance (not Aurora/Multi-AZ Cluster) by design: this workload's traffic
+# doesn't justify Aurora's storage/compute cost premium, and standard RDS
+# Multi-AZ (var.multi_az) already gives synchronous-standby HA + automatic
+# failover, which is the specific HA property MySQL itself doesn't provide
+# out of the box. Revisit Cluster mode only if read-replica autoscaling or
+# sub-30s failover becomes a real requirement.
 # ---------------------------------------------------------------------------
 
 resource "aws_db_instance" "this" {

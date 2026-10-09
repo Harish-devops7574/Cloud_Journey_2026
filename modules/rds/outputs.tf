@@ -13,6 +13,7 @@ output "endpoint" {
 output "master_user_secret_arn" {
   description = "Secrets Manager ARN holding the auto-generated master password."
   value       = aws_db_instance.this.master_user_secret[0].secret_arn
+  sensitive   = true
 }
 
 output "security_group_id" {

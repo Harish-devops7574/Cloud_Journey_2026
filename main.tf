@@ -109,3 +109,66 @@ module "backup_automation" {
 
   restricted_permissions = var.restricted_permissions
 }
+
+# ---------------------------------------------------------------------------
+# AWS Backup — native, service-managed RDS snapshots (opt-in). This is the
+# "native way to back up RDS" alternative to the custom Lambda above: no code
+# to maintain, backups/restores are driven entirely by the AWS Backup console/
+# API, and it's the standard mechanism for centralized backup policy across
+# services. The Lambda in modules/backup_automation remains useful when you
+# need custom pruning logic across RDS *and* DynamoDB in one place.
+# ---------------------------------------------------------------------------
+
+resource "aws_backup_vault" "this" {
+  count = var.enable_aws_backup ? 1 : 0
+
+  name        = "${var.project_name}-${var.environment}-backup-vault"
+  kms_key_arn = module.rds.kms_key_arn
+}
+
+resource "aws_iam_role" "backup" {
+  count = var.enable_aws_backup ? 1 : 0
+
+  name = "${var.project_name}-${var.environment}-aws-backup-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "backup.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "backup" {
+  count = var.enable_aws_backup ? 1 : 0
+
+  role       = aws_iam_role.backup[0].name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+}
+
+resource "aws_backup_plan" "this" {
+  count = var.enable_aws_backup ? 1 : 0
+
+  name = "${var.project_name}-${var.environment}-backup-plan"
+
+  rule {
+    rule_name         = "daily-rds-snapshot"
+    target_vault_name = aws_backup_vault.this[0].name
+    schedule          = var.aws_backup_schedule_expression
+
+    lifecycle {
+      delete_after = var.aws_backup_retention_days
+    }
+  }
+}
+
+resource "aws_backup_selection" "rds" {
+  count = var.enable_aws_backup ? 1 : 0
+
+  name         = "${var.project_name}-${var.environment}-rds-selection"
+  plan_id      = aws_backup_plan.this[0].id
+  iam_role_arn = aws_iam_role.backup[0].arn
+  resources    = [module.rds.db_instance_arn]
+}

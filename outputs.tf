@@ -11,6 +11,7 @@ output "db_instance_arn" {
 output "db_master_user_secret_arn" {
   description = "Secrets Manager ARN holding the auto-generated RDS master password."
   value       = module.rds.master_user_secret_arn
+  sensitive   = true
 }
 
 output "db_security_group_id" {
@@ -43,4 +44,9 @@ output "backup_automation_function_name" {
 output "sns_topic_arn" {
   description = "Shared SNS topic ARN for backup/DR/operational alarms."
   value       = aws_sns_topic.alerts.arn
+}
+
+output "aws_backup_vault_name" {
+  description = "AWS Backup vault holding native RDS recovery points (null unless enable_aws_backup = true)."
+  value       = var.enable_aws_backup ? aws_backup_vault.this[0].name : null
 }

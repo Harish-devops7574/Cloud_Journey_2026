@@ -28,6 +28,17 @@ week3-db-backup-dr/
 
 Provisions the primary relational database.
 
+**Why RDS Instance (`aws_db_instance`) instead of an Aurora Cluster?**
+`multi_az = true` already gives MySQL a synchronously-replicated standby in a second AZ with
+automatic failover (typically 60-120s) — this is the HA RDS provides out of the box, no
+cluster required. An Aurora Cluster (`aws_rds_cluster` + `aws_rds_cluster_instance`) buys
+faster failover (~30s), up to 15 read replicas, and storage auto-scaling to 128 TiB, at the
+cost of being a different, Aurora-specific MySQL-compatible engine, higher per-vCPU pricing,
+and no vanilla-MySQL portability. For this project's scale (single app tier, moderate read
+load, standard MySQL 8.0), plain RDS Instance with Multi-AZ meets the HA requirement without
+that added cost/complexity. Aurora is the better choice once read-replica fan-out or
+sub-minute failover becomes an actual requirement.
+
 **Resources**
 - `aws_kms_key` / `aws_kms_alias` — customer-managed key dedicated to this database (storage + Performance Insights), with automatic key rotation enabled.
 - `aws_db_subnet_group` — built from `private_subnet_ids`.

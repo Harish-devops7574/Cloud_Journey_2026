@@ -184,6 +184,28 @@ variable "manual_snapshot_retention_days" {
   default     = 14
 }
 
+# ---------------------------------------------------------------------------
+# AWS Backup (native backup service, as an alternative to the custom Lambda)
+# ---------------------------------------------------------------------------
+
+variable "enable_aws_backup" {
+  description = "When true, provisions an AWS Backup plan/vault that takes native, service-managed RDS snapshots (in addition to RDS's own automated backups and the custom Lambda). This is AWS's recommended native backup mechanism and requires no custom code."
+  type        = bool
+  default     = false
+}
+
+variable "aws_backup_schedule_expression" {
+  description = "Cron/rate expression AWS Backup uses to kick off the backup job."
+  type        = string
+  default     = "cron(0 5 * * ? *)" # 05:00 UTC daily
+}
+
+variable "aws_backup_retention_days" {
+  description = "Number of days AWS Backup retains each recovery point before deleting it."
+  type        = number
+  default     = 30
+}
+
 variable "notification_email" {
   description = "Email address subscribed to the SNS topic for backup success/failure notifications. Leave empty to skip the subscription."
   type        = string
